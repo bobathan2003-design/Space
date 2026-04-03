@@ -1,62 +1,63 @@
 import express from 'express';
 import path from 'path';
+import { existsSync } from 'fs';
 import rateLimit from 'express-rate-limit';
+
 const router = express.Router();
-
-let __dirname = process.cwd();
-
+const __dirname = process.cwd();
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 25000, 
+	windowMs: 15 * 60 * 1000,
+	max: 25000,
 });
 
 router.use(limiter);
 
+const sendStaticFile = (res, filePath, statusCode = 200) => {
+	if (!existsSync(filePath)) {
+		return res.status(404).sendFile(path.join(__dirname, 'public/err.html'));
+	}
+
+	return res.status(statusCode).sendFile(filePath, (err) => {
+		if (err && !res.headersSent) {
+			res.status(500).sendFile(path.join(__dirname, 'public/500.html'));
+		}
+	});
+};
+
 router.get('/', (req, res) => {
-	res.sendFile(path.join(__dirname, 'public/index.html'));
+	sendStaticFile(res, path.join(__dirname, 'public/index.html'));
 });
 
 router.get('/&', (req, res) => {
-	res.sendFile(path.join(__dirname, 'public/&.html'));
+	sendStaticFile(res, path.join(__dirname, 'public/&.html'));
 });
 
 router.get('/~', (req, res) => {
-	res.sendFile(path.join(__dirname, 'public/~.html'));
+	sendStaticFile(res, path.join(__dirname, 'public/~.html'));
 });
 
 router.get('/g', (req, res) => {
-	res.sendFile(path.join(__dirname, 'public/g.html'));
+	sendStaticFile(res, path.join(__dirname, 'public/g.html'));
 });
 
 router.get('/a', (req, res) => {
-	res.sendFile(path.join(__dirname, 'public/a.html'));
+	sendStaticFile(res, path.join(__dirname, 'public/a.html'));
 });
 
 router.get('/err', (req, res) => {
-	res.sendFile(path.join(__dirname, 'public/err.html'));
+	sendStaticFile(res, path.join(__dirname, 'public/err.html'));
 });
 
 router.get('/500', (req, res) => {
-	res.sendFile(path.join(__dirname, 'public/500.html'));
-});
-
-router.get('/a', (req, res) => {
-	res.sendFile(path.join(__dirname, 'public/a.html'));
-});
-router.get('/g', (req, res) => {
-	res.sendFile(path.join(__dirname, 'public/g.html'));
-});
-
-router.get('/a', (req, res) => {
-	res.sendFile(path.join(__dirname, 'public/a.html'));
+	sendStaticFile(res, path.join(__dirname, 'public/500.html'), 500);
 });
 
 router.get('/password', (req, res) => {
-	res.sendFile(path.join(__dirname, 'public/password.html'));
+	sendStaticFile(res, path.join(__dirname, 'public/password.html'));
 });
 
-router.use((req, res, next) => {
+router.use((req, res) => {
 	res.status(404).sendFile(path.join(__dirname, 'public/err.html'));
 });
 
